@@ -18,11 +18,13 @@ MinimumPermissionLevel = {
     'help':0,
     'yes': 1,
     'no': 1,
+    'back':1,
     'tpToPlayer': 1,
     'tpToPosition': 2,
 }
 
 # ========= 以下為不可變變數 =========
+getPos = 'no'
 def getTpList():
     f = open('plugins/tpHelper/requests.json','r',encoding='utf8')
     data = json.load(f)
@@ -34,6 +36,33 @@ def writeTpList(data):
     json.dump(data,f)
     f.close()
 
+def getLastTpPosList():
+    f = open('plugins/tpHelper/lastPos.json','r',encoding='utf8')
+    data = json.load(f)
+    f.close()
+    return data
+
+def writeLastTpPosList(data):
+    f = open('plugins/tpHelper/lastPos.json','w',encoding='utf8')
+    json.dump(data,f)
+    f.close()
+
+def getLastTpPos(name,drop=False):
+    data = getLastTpPosList()
+    if name in data:
+        pos = data[name]
+        if drop==True:
+            del data[name]
+            writeLastTpPosList(data)
+        return pos
+    else:
+        return []
+
+def writeLastTpPos(name,x,y,z):
+    data = getLastTpPosList()
+    data[name] = [x,y,z]
+    writeLastTpPosList(data)
+    
 def findBy(tag,name):
     tplist = getTpList()
     for tp in tplist:
@@ -88,10 +117,15 @@ def responseTpRequests(to,answer):
     writeTpList(tplist)
 
 def tpAfterSeconds(server,name,to,sec=5):
+    global getPos
     while sec>0:
         server.tell(name,f"將於{sec}秒後傳送到{to}身邊!")
         time.sleep(1)
         sec -= 1
+    getPos = name
+    server.execute(f"/execute positioned as {name} run tp {name} ~0 ~0 ~0")
+    while getPos!='no':
+        time.sleep(0.05)
     server.execute(f"/tp {name} {to}")
 
 def delete_req(name):
@@ -104,7 +138,19 @@ def delete_req(name):
         tplist.pop(find)
         writeTpList(tplist)
 
-def on_user_info(server, info):
+def on_info(server, info):
+    if not info.is_user:
+        global getPos
+        if "Teleported" in info.content and getPos!='no':
+            cmdList = info.content.split(' ')
+            if getPos == cmdList[1]:
+                x = cmdList[3].split('.')[0]
+                y = cmdList[4].split('.')[0]
+                z = cmdList[5].split('.')[0]
+                writeLastTpPos(getPos,x,y,z)
+                getPos = 'no'
+        return
+    
     command = info.content.split()
     if len(command) == 0 or command[0] != Prefix:
         return
@@ -125,7 +171,6 @@ def on_user_info(server, info):
         if server.get_permission_level(info) < MinimumPermissionLevel['tpToPlayer']:
             print_message(server, info, '§c權限不足！§r')
             return
-
     try:
         # !!tp
         if cmd_len == 1:
@@ -142,6 +187,10 @@ def on_user_info(server, info):
                     print_message(server,info,"目前沒有待確認的請求")
                 else:
                     responseTpRequests(info.player,command[1].lower())
+            elif command[1].lower()=='back':
+                pos = getLastTpPos(info.player,True)
+                if pos!=[]:
+                    server.execute(f"/tp {info.player} {pos[0]} {pos[1]} {pos[2]}")
             else:
                 # !!tp <playername>
                 online_player_api = server.get_plugin_instance('OnlinePlayerAPI')
@@ -173,7 +222,8 @@ def on_user_info(server, info):
         else:
             print_message(server,info,"!!tp 指令輸入錯誤!")
             show_help(server,info)
-    except:
+    except Exception as e:
+        #print_message(server,info,str(e))
         print_message(server,info,"!!tp 運行錯誤，請確認指令輸入是否正確!")
         show_help(server,info)
 
@@ -194,3 +244,4 @@ def on_load(server, old):
     if not os.path.exists('plugins/tpHelper'):
         os.mkdir('plugins/tpHelper')
     writeTpList([])
+    writeLastTpPosList({})
