@@ -23,15 +23,14 @@ MinimumPermissionLevel = {
 }
 
 # ========= 以下為不可變變數 =========
-find_player = 'wait for search'
 def getTpList():
-    f = open('tpHelper/requests.json','r',encoding='utf8')
+    f = open('plugins/tpHelper/requests.json','r',encoding='utf8')
     data = json.load(f)
     f.close()
     return data
 
 def writeTpList(data):
-    f = open('tpHelper/requests.json','w',encoding='utf8')
+    f = open('plugins/tpHelper/requests.json','w',encoding='utf8')
     json.dump(data,f)
     f.close()
 
@@ -105,15 +104,7 @@ def delete_req(name):
         tplist.pop(find)
         writeTpList(tplist)
 
-def on_info(server, info):
-    if not info.is_user:
-        if info.content == 'No entity was found':
-            global find_player
-            find_player = 'no'
-        elif "has the following entity data" in info.content:
-            find_player = info.content.split(' ')[0]
-        return
-        
+def on_user_info(server, info):
     command = info.content.split()
     if len(command) == 0 or command[0] != Prefix:
         return
@@ -153,19 +144,15 @@ def on_info(server, info):
                     responseTpRequests(info.player,command[1].lower())
             else:
                 # !!tp <playername>
-                find_player = 'wait'
-                server.execute(f'/data get entity {command[1]}')
-                wait = 5
-                while find_player!=command[1] and wait>0:
-                    time.sleep(0.1)
-                    wait -= 0.1
-                if find_player=='no' or find_player!=command[1]:
+                online_player_api = server.get_plugin_instance('OnlinePlayerAPI')
+                find_player = online_player_api.check_online(command[1])
+                if find_player==False:
                     print_message(server,info,"請求失敗，指定的玩家不存在或未上線")
                 elif findBy('name',info.player):
                     print_message(server,info,"請求失敗，你已經有一個傳送請求正在等待被確認")
                 elif findBy('to',command[1]):
                     print_message(server,info,"請求失敗，對方目前已有待確認的請求")
-                elif find_player==command[1]:
+                else:
                     create_req(server,info,info.player,command[1])
         elif cmd_len in [4,5]:
             # !!tp <x> <y> <z> [<world>]

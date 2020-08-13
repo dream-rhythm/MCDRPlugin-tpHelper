@@ -11,7 +11,7 @@ This is a minecraft MCDR server plugin, it add /tp to not op player.
 |:--|:--:|:--:|
 |`!!tp help`|guest|列出所有指令|
 |`!!tp <player_name>`|user|向`<player_name>`發送傳送到他身邊的請求|
-|`!!tp <yes|no>`|user|同意或拒絕來自其他玩家傳送到身邊的請求|
+|`!!tp <yes/no>`|user|同意或拒絕來自其他玩家傳送到身邊的請求|
 |`!!tp <x> <y> <z> [<world>]`|helper|傳送自己到座標world:0=主世界(預設) 1=地獄 2=終界|
 
 ## 安裝
