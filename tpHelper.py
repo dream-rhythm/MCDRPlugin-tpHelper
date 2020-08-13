@@ -191,6 +191,6 @@ def print_message(server, info, msg, tell=True, prefix='[TPH] '):
 
 def on_load(server, old):
     server.add_help_message(f'{Prefix} help','顯示快速傳送幫助')
-    if not os.path.exists('tpHelper'):
-        os.mkdir('tpHelper')
+    if not os.path.exists('plugins/tpHelper'):
+        os.mkdir('plugins/tpHelper')
     writeTpList([])
