@@ -17,4 +17,4 @@ This is a minecraft MCDR server plugin, it add /tp to not op player.
 
 ## 安裝
 1. 將`tpHelper.py`及依賴API[`OnlinePlayerAPI`](https://github.com/zhang-anzhi/MCDReforgedPlugins/tree/master/OnlinePlayerAPI)放到`plugins`資料夾內  
-2. 到Minecraft中輸入`!!MCDR plugin load GoogleDriveBackup`載入插件即可
+2. 到Minecraft中輸入`!!MCDR plugin load tpHelper.py`載入插件即可
